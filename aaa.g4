@@ -1,6 +1,59 @@
 grammar aaa;
-expr: ID '=' ';';
-
+program: ft_dcl? ft_def+;
+ft_dcl: DECLARE OCB ( func_dcl | type_dcl | var_dcl )+ CCB;
+func_dcl: (OP args CP '=')? ID OP ( args | args_var )? CP SemiColon;
+args: type (OP CP)*
+    | args Comma type  (OB CB)*
+    ;
+args_var: type (OB CB)* ID
+        | args_var Comma type (OB CB)* ID
+        ;
+type_dcl: ID SemiColon;
+var_def: CONST? type var_val (Comma var_val)* SemiColon;
+var_val: ref ('=' expr)?;
+ft_def: (type_def | func_def);
+type_def: TYPE ID (Colon ID)? OCB component+ CCB;
+component: access_modifier? (var_def | func_def);
+access_modifier: PRIVATE
+                | PUBLIC
+                | PROTECTED
+                ;
+func_def: (OP args_var CP '=')? FUNCTION ID OP args_var? CP block;
+block: OCB (var_def | stmt)* CCB;
+stmt: assign SemiColon
+    | func_call SemiColon
+    | cond_stmt
+    | loop_stmt
+    | BREAK SemiColon
+    | CONTINUE SemiColon
+    | DESTRUCT (OP CP)* ID SemiColon
+    ;
+assign: ( var | OP var (Comma var)* CP) '=' expr;
+var: ((THIS | SUPER) Comma)? ref (Comma ref)*;
+ref: ID (OB expr CB)*;
+expr: expr binary_op expr
+    | OP expr CP
+    | unary_op expr
+    | const_val
+    | ALLOCATE handle_call
+    | func_call
+    | var
+    | list
+    | NIL
+    ;
+func_call: (var Comma)? handle_call
+            | READ OP CP
+            | WRITE OP expr CP
+            ;
+list: OB (expr | list) (SemiColon (expr | list))* CB;
+handle_call: ID OP params? CP;
+params: expr
+        | expr Comma params
+        ;
+cond_stmt: IF expr (block | stmt) (ELSE (block | stmt))?
+        | SWITCH var OCB switch_body CCB
+        ;
+switch_body: (CASEOF INT_CONST )+;
 
 ID: [a-zA-Z]+[0-9]*
     | ('_'|'@') [a-zA-Z0-9]*
