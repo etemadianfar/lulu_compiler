@@ -1,6 +1,8 @@
 grammar aaa;
+
+
 program: ft_dcl? ft_def+;
-ft_dcl: DECLARE OCB ( func_dcl | type_dcl | var_dcl )+ CCB;
+ft_dcl: DECLARE OCB ( func_dcl | type_dcl | var_def )+ CCB;
 func_dcl: (OP args CP '=')? ID OP ( args | args_var )? CP SemiColon;
 args: type (OP CP)*
     | args Comma type  (OB CB)*
@@ -53,7 +55,51 @@ params: expr
 cond_stmt: IF expr (block | stmt) (ELSE (block | stmt))?
         | SWITCH var OCB switch_body CCB
         ;
-switch_body: (CASEOF INT_CONST )+;
+switch_body: (CASEOF INT_CONST Colon block)+ (DEFAULT Colon block)?;
+loop_stmt: FOR (type? assign)? SemiColon expr SemiColon assign? block
+        | WHILE expr block
+        ;
+
+type: INT
+    | BOOL
+    | FLOAT
+    | STRING
+    | ID
+    ;
+const_val: INT_CONST
+        | REAL_CONST
+        | BOOL_CONST
+        | STRING_CONST
+        ;
+unary_op: '-'
+        | '!'
+        | '~'
+        ;
+binary_op: arithmetic
+        | relational
+        | bitwise
+        | logical
+        ;
+arithmetic: '+'
+        | '-'
+        | '*'
+        | '/'
+        | '%'
+        ;
+relational: '=='
+        | '!='
+        | '<='
+        | '>='
+        | '>'
+        | '<'
+        ;
+bitwise: '&'
+        | '|'
+        ;
+logical: '||'
+        | '&&'
+        ;
+
 
 ID: [a-zA-Z]+[0-9]*
     | ('_'|'@') [a-zA-Z0-9]*
@@ -106,6 +152,19 @@ Subtract: '-';
 Add: '+';
 Mult: '*';
 Divid: '/';
+Modulus: '%';
+
+//structure operatores
+OCB: '{';
+CCB: '}';
+OP: '(';
+CP: ')';
+OB: '[';
+CB: ']';
+Dot: '.';
+Comma: ',';
+Colon: ':';
+SemiColon: ';';
 
 
 
@@ -120,3 +179,4 @@ BOOL_CONST:
 WS: [ \t\n\r]+ -> skip;
 BLOCK_COMMENT: '#(' .*? ')#' -> skip;
 LINE_COMMENT: '#$' ~[\r\n]* -> skip;
+
