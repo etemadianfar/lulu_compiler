@@ -1,4 +1,4 @@
-grammar aaa;
+grammar antlr;
 program : ft_dcl? ft_def+;
 ft_dcl  : 'declare' '{' (func_dcl | type_dcl | var_def)+ '}';
 func_dcl: ('(' args ')' '=')? ID '(' (args | args_var)? ')' ';';
@@ -17,12 +17,20 @@ stmt    : assign ';' | func_call ';' | cond_stmt | loop_stmt | 'break' ';' | 'co
 assign  : ( var | '(' var ( ',' var )* ')' ) '=' expr;
 var     : ( ( 'this' | 'super' ) '.' )? ref ( '.' ref )*;
 ref     : ID ( '[' expr ']' )*;
-expr    : expr binary_op expr | '(' expr ')' | unary_op expr | const_val | 'allocate' handle_call | func_call | var | list | 'nil';
+expr    : expr '||' b | b;
+          b : b'&&'  c | c;
+          c : c '|'  d | d;
+          d : d '&'  e | e;
+          e : e ('==' | '!=' ) f | f;
+          f : f ('<' | '>' | '>=' | '<=') g| g;
+          g : g ('+' | '-') h | h;
+          h : h ('*' | '/' | '%') ('-' | '!' | '~')?i| ('-' | '!' | '~')?i;
+          i : '(' expr ')' | const_val | ID | 'allocate' handle_call| func_call | var | list | 'nil';
 func_call: ( var '.' )? handle_call | 'read' '(' ')' | 'write' '(' expr ')';
 list    : '[' ( expr | list ) ( ',' ( expr | list ) )* ']';
 handle_call: ID '(' params? ')';
 params  : expr | expr ',' params;
-cond_stmt: 'if' expr ( block | stmt ) ( 'else' ( block | stmt ) )? | 'switch' var '{' switch_body '}';
+cond_stmt: 'if' '('expr')' ( block | stmt ) ( 'else' ( block | stmt ) )? | 'switch' var '{' switch_body '}';
 switch_body: ( 'caseof' INT_CONST ':' block )+ ( 'default' ':' block )?;
 loop_stmt: 'for' ( type? assign )? ';' expr ';' assign? block | 'while' expr block;
 type    : 'int' | 'bool' | 'float' | 'string' | ID;
@@ -34,15 +42,26 @@ bitwise : '&' | '|';
 logical : '||' | '&&';
 relational: '==' | '!=' | '<=' | '>=' | '<' | '>';
 
+//expression : expression '||' b | b;
+//b : b'&&'  c | c;
+//c : c '|'  d | d;
+//d : d '&'  e | e;
+//e : e ('==' | '!=' ) f | f;
+//f : f ('<' | '>' | '>=' | '<=') g| g;
+//g : g ('+' | '-') h | h;
+//h : h ('*' | '/' | '%') ('-' | '!' | '~')?i| ('-' | '!' | '~')?i;
+//i : '(' expr ')' | const_val | ID | 'allocate' handle_call| func_call | var | list | 'nil';
 ID      : [@_A-Za-z]+[@_A-Za-z0-9]*;
 INT_CONST: ('0' [xX] [0-9a-fA-F]+) | ([0-9]+);
 REAL_CONST: (INT_CONST '.' INT_CONST | '.' INT_CONST | INT_CONST '.') ('e' [+-]? INT_CONST)?;
 BOOL_CONST: 'true' | 'false' ;
-STRING_CONST: '\'' ([a-zA-Z0-9@#$%^&*()!+/*{}"':;.,?~`] ~[\r\n]* | ESCAPE | HEX )* '\'';
+STRING_CONST: '\'' ([a-zA-Z0-9] | WS | ('`'|'~'|'!'|'@'|'#'|'$'|'%'|'^'|'('|')'|'_'|'-'|'='|'+'|'/'|'\\'|'"'|']'|'['|'{'|'}'|'.'|','|':'|';'|'|'|'&'|'?'|'<'|'>'|'*') | ESCAPE | HEX )* '\'';
 ESCAPE  : '\\' ('\'' | 't' | '0' | '\\' | 'r' );
 HEX     : '\\' [xX] [A-Fa-f0-9] [A-Fa-f0-9];
 
 BLOCK_COMMENT: '#(' .*? ')#' -> skip;
 LINE_COMMENT: '#$' ~[\r\n]* -> skip;
 WS      : [\t\r\n ]+ -> skip;
+
+test: STRING_CONST;
 
