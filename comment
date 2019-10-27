@@ -1,0 +1,13 @@
+one line comment:
+#\$[\W\w\t\ \r]*\$#
+
+multi line comment:
+#\([\w\W\t\ \n\r]*\)#
+
+'#\\'[A-Za-z0-9\t \n\r.]*'\\#'
+        | '#$'[A-Za-z0-9\t \r]*'$#' ;
+
+expression : expression ('*' | '/' | '%') expression
+           | expression ('+' | '-') expression
+           | '(' expression ')'
+           | const_val;
